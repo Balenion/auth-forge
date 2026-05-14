@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AuthForge.Core/AuthForge.Core.csproj" />
+  <Project Path="AuthForge.UI/AuthForge.UI.csproj" />
+</Solution>
