@@ -64,12 +64,18 @@ namespace AuthForge.Core.Services
 
         public bool IsTemplateValid(string filePath)
         {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath) || new FileInfo(filePath).Length < 100)
+            {
+                return false;
+            }
+
             try
             {
                 using (var workbook = new XLWorkbook(filePath))
                 {
                     var worksheet = workbook.Worksheet(1);
-                    // Получаем значения ячеек A1 и B1
+                    if (worksheet == null) return false;
+
                     string col1 = worksheet.Cell(1, 1).GetString().Trim();
                     string col2 = worksheet.Cell(1, 2).GetString().Trim();
 
@@ -77,8 +83,9 @@ namespace AuthForge.Core.Services
                            col2.Equals("Password", StringComparison.OrdinalIgnoreCase);
                 }
             }
-            catch
+            catch (Exception)
             {
+                // Перехватываем абсолютно любые ошибки парсинга ClosedXML (битые архивы, не тот формат)
                 return false;
             }
         }

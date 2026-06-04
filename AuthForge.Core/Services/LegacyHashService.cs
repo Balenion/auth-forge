@@ -13,6 +13,11 @@ namespace AuthForge.Core.Services
 
         public HashResult Hash(string password)
         {
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Пароль не может быть пустым или null.", nameof(password));
+            }
+
             byte[] salt = RandomNumberGenerator.GetBytes(16);
             byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
             byte[] combinedBytes = [.. salt, .. passwordBytes];
@@ -27,6 +32,11 @@ namespace AuthForge.Core.Services
 
         public HashResult HashPlain(string password)
         {
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Пароль не может быть пустым или null.", nameof(password));
+            }
+
             byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
             return new HashResult(Convert.ToBase64String(hashBytes), null);
         }

@@ -14,6 +14,11 @@ namespace AuthForge.Core.Services
 
         public HashResult Hash(string password)
         {
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Пароль не может быть пустым или null.", nameof(password));
+            }
+
             string complexHash = BCrypt.Net.BCrypt.HashPassword(password, WorkFactor);
 
             return new HashResult(complexHash, "Embedded");

@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="AuthForge.Core.Tests/AuthForge.Core.Tests.csproj" Id="7cff2b19-b886-423a-84fc-6a9bfed900f6" />
   <Project Path="AuthForge.Core/AuthForge.Core.csproj" />
   <Project Path="AuthForge.UI/AuthForge.UI.csproj" />
 </Solution>

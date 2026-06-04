@@ -14,6 +14,11 @@ namespace AuthForge.Core.Services
         
         public HashResult Hash(string password)
         {
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Пароль не может быть пустым или null.", nameof(password));
+            }
+
             byte[] salt = RandomNumberGenerator.GetBytes(16);
             byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
                 Encoding.UTF8.GetBytes(password),
