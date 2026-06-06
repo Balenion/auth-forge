@@ -10,8 +10,11 @@ namespace AuthForge.Core.Services
     public class BuiltInHashService : IPasswordService
     {
         public string AlgorithmName => "PBKDF2 (.NET Built-in)";
+
         public int Iterations { get; set; } = 100000;
-        
+
+        public HashAlgorithmName SelectedHashAlgorithm { get; set; } = HashAlgorithmName.SHA256;
+
         public HashResult Hash(string password)
         {
             if (string.IsNullOrEmpty(password))
@@ -20,11 +23,12 @@ namespace AuthForge.Core.Services
             }
 
             byte[] salt = RandomNumberGenerator.GetBytes(16);
+
             byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
                 Encoding.UTF8.GetBytes(password),
                 salt,
                 Iterations,
-                HashAlgorithmName.SHA256,
+                SelectedHashAlgorithm,
                 32);
 
             return new HashResult(

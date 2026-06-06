@@ -4,6 +4,7 @@ using AuthForge.Core.Services;
 using BCrypt.Net;
 using Microsoft.Win32;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -98,15 +99,23 @@ namespace AuthForge.UI
 
         private void AlgoSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (Argon2Settings == null || LegacySettings == null) return;
+            if (Argon2Settings == null || LegacySettings == null || BCryptSettings == null || PBKDF2Settings == null) return;
 
             Argon2Settings.Visibility = Visibility.Collapsed;
             LegacySettings.Visibility = Visibility.Collapsed;
+            BCryptSettings.Visibility = Visibility.Collapsed;
+            PBKDF2Settings.Visibility = Visibility.Collapsed;
 
             switch (AlgoSelector.SelectedIndex)
             {
                 case 0:
                     Argon2Settings.Visibility = Visibility.Visible;
+                    break;
+                case 1:
+                    BCryptSettings.Visibility= Visibility.Visible;
+                    break;
+                case 2:
+                    PBKDF2Settings.Visibility = Visibility.Visible;
                     break;
                 case 3:
                     LegacySettings.Visibility = Visibility.Visible;
@@ -127,6 +136,13 @@ namespace AuthForge.UI
             int argonIter = (int)IterSlider.Value;
             int argonParallel = (int)ThreadSlider.Value;
 
+            int bcryptWorkFactor = (int)WorkFactorSlider.Value;
+
+            int pbkdf2Iterations = (int)Pbkdf2IterSlider.Value;
+            HashAlgorithmName pbkdf2HashAlgo = Pbkdf2AlgoSelector.SelectedIndex == 1
+                ? HashAlgorithmName.SHA512
+                : HashAlgorithmName.SHA256;
+
             IPasswordService selectedHasher = selectedIndex switch
             {
                 0 => _argon2,
@@ -142,6 +158,17 @@ namespace AuthForge.UI
                 a2.Parallelism = argonParallel;
             }
 
+            else if (selectedHasher is BCryptService bc)
+            {
+                bc.WorkFactor = bcryptWorkFactor;
+            }
+
+            else if (selectedHasher is BuiltInHashService pbkdf2)
+            {
+                pbkdf2.Iterations = pbkdf2Iterations;
+                pbkdf2.SelectedHashAlgorithm = pbkdf2HashAlgo;
+            }
+
             try
             {
                 ProgressArea.Visibility = Visibility.Visible;
@@ -150,11 +177,14 @@ namespace AuthForge.UI
                 HashProgress.Value = 0;
 
                 var users = await Task.Run(() => _excelService.ReadEmployees(_selectedFile));
-                var results = new List<UserOutput>();
+
+                var resultsArray = new UserOutput[users.Count];
+
+                int processedCount = 0;
 
                 await Task.Run(() =>
                 {
-                    for (int i = 0; i < users.Count; i++)
+                    Parallel.For(0, users.Count, i =>
                     {
                         HashResult hashResult;
 
@@ -167,15 +197,18 @@ namespace AuthForge.UI
                             hashResult = selectedHasher.Hash(users[i].Password);
                         }
 
-                        results.Add(new UserOutput(
+                        resultsArray[i] = new UserOutput(
                             users[i].Login,
                             hashResult.Hash,
                             hashResult.Salt,
-                            selectedHasher.AlgorithmName + (!useSaltForLegacy && selectedHasher is LegacyHashService ? " (No Salt)" : "")));
+                            selectedHasher.AlgorithmName + (!useSaltForLegacy && selectedHasher is LegacyHashService ? " (No Salt)" : ""));
 
-                        Dispatcher.Invoke(() => HashProgress.Value = (i + 1) * 100 / users.Count);
-                    }
+                        int currentProcessed = Interlocked.Increment(ref processedCount);
+
+                        Dispatcher.Invoke(() => HashProgress.Value = currentProcessed * 100 / users.Count);
+                    });
                 });
+                var results = resultsArray.ToList();
 
                 StatusTxt.Text = "Saving...";
                 var savePicker = new SaveFileDialog { Filter = "Excel Files|*.xlsx", FileName = "Results.xlsx" };
@@ -205,7 +238,18 @@ namespace AuthForge.UI
 
             if (AlgoSelector.SelectedIndex == 0)
             {
-                ActiveDetailsTxt.Text = $"{MemorySlider.Value} MB, {IterSlider.Value} Iter, {ThreadSlider.Value} Threads";
+                ActiveDetailsTxt.Text = $"{MemorySlider.Value} MB, {IterSlider.Value} Iterations, {ThreadSlider.Value} Threads";
+                ActiveDetailsTxt.Visibility = Visibility.Visible;
+            }
+            else if (AlgoSelector.SelectedIndex == 1)
+            {
+                ActiveDetailsTxt.Text = $"WorkFactor {WorkFactorSlider.Value}";
+                ActiveDetailsTxt.Visibility = Visibility.Visible;
+            }
+            else if (AlgoSelector.SelectedIndex == 2)
+            {
+                string hashAlgorithm = Pbkdf2AlgoSelector.SelectedIndex == 0 ? "SHA256" : "SHA512";
+                ActiveDetailsTxt.Text = $"Iterations {Pbkdf2IterSlider.Value}, HashAlgorithm {hashAlgorithm}";
                 ActiveDetailsTxt.Visibility = Visibility.Visible;
             }
             else if (AlgoSelector.SelectedIndex == 3)
@@ -237,6 +281,19 @@ namespace AuthForge.UI
                 a2.MemoryKb = (int)MemorySlider.Value * 1024;
                 a2.Iterations = (int)IterSlider.Value;
                 a2.Parallelism = (int)ThreadSlider.Value;
+            }
+
+            else if (selectedHasher is BCryptService bc)
+            {
+                bc.WorkFactor = (int)WorkFactorSlider.Value;
+            }
+
+            else if (selectedHasher is BuiltInHashService pbkdf2)
+            {
+                pbkdf2.Iterations = (int)Pbkdf2IterSlider.Value;
+                pbkdf2.SelectedHashAlgorithm = Pbkdf2AlgoSelector.SelectedIndex == 1
+                    ? HashAlgorithmName.SHA512
+                    : HashAlgorithmName.SHA256;
             }
 
             HashResult result;
@@ -333,6 +390,36 @@ namespace AuthForge.UI
             {
                 MessageBox.Show($"Error switching language: {ex.Message}", "Localization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void MemorySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdateActiveSettingsInfo();
+        }
+
+        private void IterSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdateActiveSettingsInfo();
+        }
+
+        private void ThreadSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdateActiveSettingsInfo();
+        }
+
+        private void WorkFactorSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdateActiveSettingsInfo();
+        }
+
+        private void Pbkdf2IterSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdateActiveSettingsInfo();
+        }
+
+        private void Pbkdf2AlgoSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateActiveSettingsInfo();
         }
     }
 }

@@ -19,7 +19,11 @@
 
     <System:String x:Key="m_AlgoConfig" xmlns:System="clr-namespace:System;assembly=mscorlib">КОНФИГУРАЦИЯ АЛГОРИТМА</System:String>
     <System:String x:Key="m_ArgonParams" xmlns:System="clr-namespace:System;assembly=mscorlib">Параметры Argon2</System:String>
+    <System:String x:Key="m_BCryptParams" xmlns:System="clr-namespace:System;assembly=mscorlib">Параметры BCrypt</System:String>
     <System:String x:Key="m_ParamMemory" xmlns:System="clr-namespace:System;assembly=mscorlib">Память (RAM):</System:String>
+    <System:String x:Key="m_ParamWorkFactor" xmlns:System="clr-namespace:System;assembly=mscorlib">WorkFactor:</System:String>
+    <System:String x:Key="m_ParamPRF" xmlns:System="clr-namespace:System;assembly=mscorlib">Хэш-алгоритм (PRF):</System:String>
+    <System:String x:Key="m_ParamNumberOfIterations" xmlns:System="clr-namespace:System;assembly=mscorlib">Количество итераций:</System:String>
     <System:String x:Key="m_ParamIterations" xmlns:System="clr-namespace:System;assembly=mscorlib">Итерации:</System:String>
     <System:String x:Key="m_ParamParallelism" xmlns:System="clr-namespace:System;assembly=mscorlib">Параллелизм (Потоки):</System:String>
     <System:String x:Key="m_WarningSHA256" xmlns:System="clr-namespace:System;assembly=mscorlib">ВНИМАНИЕ: SHA256 без соли уязвим к атакам по радужным таблицам!</System:String>

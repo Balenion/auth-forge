@@ -168,7 +168,7 @@
                                                     <TextBlock Text="{Binding ElementName=MemorySlider, Path=Value, StringFormat={}{0} MB}" 
                                                            HorizontalAlignment="Right" FontWeight="Bold" Foreground="White"/>
                                                 </DockPanel>
-                                                <Slider x:Name="MemorySlider" Minimum="16" Maximum="512" Value="64" TickFrequency="16" IsSnapToTickEnabled="True" Margin="0,8,0,0"/>
+                                                <Slider ValueChanged="MemorySlider_ValueChanged" x:Name="MemorySlider" Minimum="16" Maximum="512" Value="64" TickFrequency="16" IsSnapToTickEnabled="True" Margin="0,8,0,0"/>
                                             </StackPanel>
                                         </Grid>
                                         <Grid Margin="0,0,0,20">
@@ -178,7 +178,8 @@
                                                     <TextBlock Text="{Binding ElementName=IterSlider, Path=Value}" 
                                                            HorizontalAlignment="Right" FontWeight="Bold" Foreground="White"/>
                                                 </DockPanel>
-                                                <Slider x:Name="IterSlider" Minimum="1" Maximum="20" Value="4" Margin="0,8,0,0"/>
+                                                <Slider x:Name="IterSlider" ValueChanged="IterSlider_ValueChanged" Minimum="1" Maximum="20" Value="4" 
+                                                        TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,8,0,0"/>
                                             </StackPanel>
                                         </Grid>
                                         <Grid>
@@ -188,7 +189,58 @@
                                                     <TextBlock Text="{Binding ElementName=ThreadSlider, Path=Value}" 
                                                            HorizontalAlignment="Right" FontWeight="Bold" Foreground="White"/>
                                                 </DockPanel>
-                                                <Slider x:Name="ThreadSlider" Minimum="1" Maximum="16" Value="8" Margin="0,8,0,0"/>
+                                                <Slider x:Name="ThreadSlider" Minimum="1" ValueChanged="ThreadSlider_ValueChanged"
+                                                        Maximum="16" Value="8" Margin="0,8,0,0"
+                                                        TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <StackPanel x:Name="BCryptSettings" Margin="0,24,0,0" Visibility="Collapsed">
+                                        <TextBlock Text="{DynamicResource m_BCryptParams}" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16" Foreground="White"/>
+                                        <Grid Margin="0,0,0,20">
+                                            <StackPanel>
+                                                <DockPanel>
+                                                    <TextBlock Text="{DynamicResource m_ParamWorkFactor}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding ElementName=WorkFactorSlider, Path=Value}" 
+                                                               HorizontalAlignment="Right" FontWeight="Bold" Foreground="White"/>
+                                                </DockPanel>
+                                                <Slider x:Name="WorkFactorSlider" Minimum="4" Maximum="15" Value="11" 
+                                                        TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,8,0,0"
+                                                        ValueChanged="WorkFactorSlider_ValueChanged"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <StackPanel x:Name="PBKDF2Settings" Margin="0,24,0,0" Visibility="Collapsed">
+                                        <TextBlock Text="Параметры PBKDF2" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16" Foreground="White"/>
+
+                                        <Grid Margin="0,0,0,20">
+                                            <StackPanel>
+                                                <TextBlock Text="{DynamicResource m_ParamPRF}" Margin="0,0,0,8"/>
+                                                <ComboBox x:Name="Pbkdf2AlgoSelector" SelectedIndex="0" 
+                                                          Foreground="White" SelectionChanged="Pbkdf2AlgoSelector_SelectionChanged"
+                                                          Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                                                    <ComboBoxItem Content="SHA256"/>
+                                                    <ComboBoxItem Content="SHA512"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Grid Margin="0,0,0,20">
+                                            <StackPanel>
+                                                <DockPanel>
+                                                    <TextBlock Text="{DynamicResource m_ParamNumberOfIterations}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding ElementName=Pbkdf2IterSlider, Path=Value, StringFormat={}{0:N0}}" 
+                                                               HorizontalAlignment="Right" FontWeight="Bold" Foreground="White"/>
+                                                </DockPanel>
+                                                <Slider x:Name="Pbkdf2IterSlider" 
+                                                        Minimum="100000" 
+                                                        Maximum="1000000" 
+                                                        Value="600000" 
+                                                        TickFrequency="50000" 
+                                                        IsSnapToTickEnabled="True" 
+                                                        Margin="0,8,0,0" ValueChanged="Pbkdf2IterSlider_ValueChanged"/>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>

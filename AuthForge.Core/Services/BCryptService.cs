@@ -10,7 +10,19 @@ namespace AuthForge.Core.Services
     public class BCryptService : IPasswordService
     {
         public string AlgorithmName => "BCrypt";
-        public int WorkFactor { get; set; } = 11;
+        private int _workFactor = 11;
+        public int WorkFactor
+        {
+            get => _workFactor;
+            set
+            {
+                if (value < 4 || value > 31)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Work Factor для BCrypt должен быть в диапазоне от 4 до 31.");
+                }
+                _workFactor = value;
+            }
+        }
 
         public HashResult Hash(string password)
         {
